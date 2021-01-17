@@ -334,7 +334,7 @@ end
 function sub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     #build and bound
     sp = buildSub(n,duals;silent=silent,env=env)
-    setBoundDual!(sp,n.bounds)
+    setBoundSub!(sp,n.bounds)
 
     #solve the sp
     optimize!(sp)

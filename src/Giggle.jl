@@ -401,7 +401,7 @@ function getCol(sp::Model)
     return col(q,u,v,p,y,z)
 end
 
-function realPrice(n::node,column::col)
+function realPrice(n::node,duals::dval;column::col)
     #CALCULATE REAL PRICING
     begin
         price = (

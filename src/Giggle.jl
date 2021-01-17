@@ -231,7 +231,7 @@ function root(dt::NamedTuple;slCoeff,suCoeff)
         id,id,
         dt,Vector{bound}(),
         Vector{col}(),
-        initialize(dt.V,dt.d,slCoeff,suCoeff),
+        initialize(dt,slCoeff,suCoeff),
         ["UNVISITED"]
     )
 

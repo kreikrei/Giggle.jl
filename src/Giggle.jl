@@ -268,7 +268,7 @@ function buildMaster(n::node;silent::Bool)
     end
 
     #VARIABLE DECLARATION
-    θ = @variable(mp, θ[keys(R),keys(n.base.K),T] >= 0) #LABEL 20
+    θ = @variable(mp, θ[keys(R),keys(n.base.K),n.base.T] >= 0) #LABEL 20
     I = @variable(mp, I[keys(n.base.V),vcat(first(n.base.T)-1,n.base.T)]) #NO BOUNDS (bounded below)
 
     #SLACK SURPLUS DECLARATION

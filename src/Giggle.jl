@@ -211,14 +211,14 @@ function base(path::String)
     return (K=K,V=V,T=T,d=d,dist=dist,G=G,deli=deli)
 end
 
-function initialize(base::NamedTuple,valueSlackCoeff::Float64,valueSurplusCoeff::Float64)
+function initialize(dt::NamedTuple,valueSlackCoeff::Float64,valueSurplusCoeff::Float64)
     slackCoeff = valueSlackCoeff
     surpCoeff = valueSurplusCoeff
-    slackLim = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(base.V),base.T)
-    surpLim = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(base.V),base.T)
-    for i in keys(base.V),t in base.T
-        slackLim[i,t] = abs(base.d[i,t])
-        surpLim[i,t] = abs(base.d[i,t])
+    slackLim = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(dt.V),dt.T)
+    surpLim = JuMP.Containers.DenseAxisArray{Float64}(undef,keys(dt.V),dt.T)
+    for i in keys(dt.V),t in dt.T
+        slackLim[i,t] = abs(dt.d[i,t])
+        surpLim[i,t] = abs(dt.d[i,t])
     end
 
     return stabilizer(slackCoeff,slackLim,surpCoeff,surpLim)

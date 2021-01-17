@@ -419,6 +419,6 @@ function realPrice(n::node,duals::dval;column::col)
 end
 #===============SUB FUNCTION SET=====#
 
-export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol
+export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol,realPrice
 
 end

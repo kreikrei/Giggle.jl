@@ -311,7 +311,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
         @objective(mp, Min,
             sum(
                 (
-                    n.base.K[k].vard * g(R[r].p[:,k,t]) +
+                    n.base.K[k].vard * g(R[r].p[:,k,t];n=n) +
                     sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) +
                     sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
                 ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
@@ -406,7 +406,7 @@ function realPrice(n::node,duals::dval;column::col)
     begin
         price = (
             sum(
-                n.base.K[k].vard * g(column.p[:,k,t]) +
+                n.base.K[k].vard * g(column.p[:,k,t];n=n) +
                 sum(n.base.deli[i,k] * column.v[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.K[k].fix * column.z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -

@@ -419,6 +419,91 @@ function realPrice(n::node,duals::dval;column::col)
 end
 #===============SUB FUNCTION SET=====#
 
+#===============SUPPORT ESTIMATOR FOR TSP===#
+function g(p::JuMP.Containers.DenseAxisArray)
+    x = twoOpt([i for i in first(p.axes) if p[i] == 1.0])
+    return x
+end #CLEARED
+
+function twoOpt(p::Vector{Int64}) #INPUT IS A COLLECTION OF POINTS [15 22 23 24] ORDER IS ARBITRARY
+    if length(p) > 0
+        #DETERMINE START AND NODE
+        start = rand(p)
+        nodes = p
+
+        #DO NEAREST NEIGHBORHOOD construction
+        nnPath = nn(start,nodes)
+
+        #RETURN ITS IMPROVEMENT
+        return trav(improve(nnPath))
+    else
+        return 0
+    end
+end #CLEARED
+
+function nn(start::Int64,nodes::Vector{Int64})
+    tour = [start]
+
+    unvisited = deepcopy(nodes)
+    current_index = 1
+    terminate = false
+
+    while !terminate
+        current_position = tour[current_index]
+
+        #REMOVE CURRENT NODES AFTER FIRST MOVE
+        to_remove = findfirst(x -> x==current_position,unvisited)
+        splice!(unvisited,to_remove)
+
+        #if no more unvisited, terminate
+        if length(unvisited) == 0
+            push!(tour,first(tour))
+            terminate = true
+        else
+            terpilih = selectNn(current_position,unvisited)
+            push!(tour,terpilih)
+        end
+
+        #UPDATE INDEX
+        current_index += 1
+    end
+
+    return tour
+end #CLEARED
+
+function selectNn(current::Int64,unvisited::Vector{Int64})
+    chosen = unvisited[1]
+
+    for j in unvisited
+        if dist[current,chosen] > dist[current,j]
+            chosen = j #tuker kalo jaraknya lebih kecil
+        end
+    end
+
+    return chosen
+end #CLEARED
+
+function improve(p::Vector{Int64}) #INPUT: NNPATH i.e. [15 27 28 29 15]
+    a = view(p,2:length(p)-1,1)
+
+    for i in 1:length(a) - 1
+        for k in i+1:length(a) - 1
+            best = trav(p)
+            reverse!(view(a,i:k,1))
+            if trav(p) >= best
+                reverse!(view(a,i:k,1))
+            end
+        end
+    end
+
+    return p
+end #CLEARED
+
+function trav(p::Vector{Int64}) #INPUT: NNPATH i.e. [15 27 28 29 15]
+    return sum(dist[p[i],p[i+1]] for i in 1:length(p)-1)
+end
+#===============SUPPORT ESTIMATOR FOR TSP===#
+
 export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol,realPrice
 
 end

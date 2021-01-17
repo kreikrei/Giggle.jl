@@ -257,12 +257,32 @@ function updateStab(stabilizers::stabilizer,param::Float64)
     return stabilizers
 end
 
-function buildMaster(n::node;silent::Bool)
+#===============MASTER FUNCTION SET=====#
+function master(n::node;silent::Bool,env::Gurobi.Env)
+    #build and bound
+    mp = buildMaster(n;silent=silent,env=env)
+    setBoundMaster!(mp,n.bounds)
+
+    #solve the mp
+    optimize!(mp)
+
+    return mp
+end
+
+function setBoundMaster!(mp::Model,bounds::Vector{bound})
+    for b in bounds
+        #masukin aturan pembuatan bound di sini
+    end
+
+    return mp
+end
+
+function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
     #COLUMN LABELING
     R = Dict(1:length(n.columns) .=> n.columns)
 
     #MODEL DECLARATION
-    mp = Model(optimizer_with_attributes(() -> Gurobi.Optimizer(Gurobi.Env())))
+    mp = Model(optimizer_with_attributes(() -> Gurobi.Optimizer(env)))
     if silent
         set_silent(mp)
     end
@@ -289,23 +309,112 @@ function buildMaster(n::node;silent::Bool)
     #OBJECTIVE FUNCTION
     begin
         @objective(mp, Min,
-
-        sum(
-            (
-                n.base.K[k].vard * g(R[r].p[:,k,t]) +
-                sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) +
-                sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
-            ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
-        ) +
-        sum(n.base.V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
-        sum(n.stblzr.slackCoeff * slack_I[i,t] for i in keys(n.base.V),t in n.base.T) -
-        sum(n.stblzr.surpCoeff * surp_I[i,t] for i in keys(n.base.V),t in n.base.T)
+            sum(
+                (
+                    n.base.K[k].vard * g(R[r].p[:,k,t]) +
+                    sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) +
+                    sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
+                ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
+            ) +
+            sum(n.base.V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
+            sum(n.stblzr.slackCoeff * slack_I[i,t] for i in keys(n.base.V),t in n.base.T) -
+            sum(n.stblzr.surpCoeff * surp_I[i,t] for i in keys(n.base.V),t in n.base.T)
         )
     end
 
     return mp
 end
 
-export base,root,buildMaster
+function getDual(mp::Model)
+    return duals = dval(dual.(mp.obj_dict[:λ]),dual.(mp.obj_dict[:δ]))
+end
+#===============MASTER FUNCTION SET=====#
+
+#===============SUB FUNCTION SET=====#
+function sub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
+    #build and bound
+    sp = buildSub(n,duals;silent=silent,env=env)
+    setBoundDual!(sp,n.bounds)
+
+    #solve the sp
+    optimize!(sp)
+
+    return sp
+end
+
+function setBoundSub!(sp::Model,bounds::Vector{bound})
+    for b in bounds
+        #masukin aturan pembuatan bound di sini
+    end
+
+    return sp
+end
+
+function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
+    #MODEL DECLARATION
+    sp = Model(optimizer_with_attributes(() -> Gurobi.Optimizer(env)))
+    if silent
+        set_silent(sp)
+    end
+
+    #VARIABLE DECLARATION
+    q = @variable(sp, q[keys(n.base.V),keys(n.base.K),n.base.T])
+    u = @variable(sp, u[keys(n.base.V),keys(n.base.K),n.base.T] >= 0)
+    v = @variable(sp, v[keys(n.base.V),keys(n.base.K),n.base.T] >= 0)
+    y = @variable(sp, y[keys(n.base.V),keys(n.base.K),n.base.T], Bin)
+    z = @variable(sp, z[keys(n.base.V),keys(n.base.K),n.base.T], Bin)
+    p = @variable(sp, p[keys(n.base.V),keys(n.base.K),n.base.T], Bin)
+
+    #CONSTRAINTS
+    @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(q[i,k,t] for i in K[k].cover) == 0)
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], q[i,k,t] == u[i,k,t] - v[i,k,t])
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], u[i,k,t] <= K[k].Q * y[i,k,t])
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], v[i,k,t] <= K[k].Q * z[i,k,t])
+    @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(z[i,k,t] for i in K[k].cover) <= 1)
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
+
+    #OBJECTIVE FUNCTION
+    begin
+        @objective(sp,Min,
+            sum(
+                sum(n.base.K[k].vard * n.base.G[i,k] * p[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.deli[i,k] * v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
+            ) -
+            sum(sum(q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
+            sum(duals.δ[k,t] for k in keys(n.base.K),t in n.base.T)
+        )
+    end
+
+    return sp
+end
+
+function getCol(sp::Model)
+    #EXTRACT VARIABLES
+    q = value.(sp.obj_dict[:q])
+    u = value.(sp.obj_dict[:u])
+    v = value.(sp.obj_dict[:v])
+    p = value.(sp.obj_dict[:p])
+    y = value.(sp.obj_dict[:y])
+    z = value.(sp.obj_dict[:z])
+
+    #CALCULATE REAL PRICING
+    begin
+        price = (
+            sum(
+                n.base.K[k].vard * g(p[:,k,t]) +
+                sum(n.base.deli[i,k] * v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
+            ) -
+            sum(sum(q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
+            sum(duals.δ[k,t] for k in keys(n.base.K),t in n.base.T)
+        )
+    end
+
+    return (price = price, column = col(q,u,v,p,y,z))
+end
+#===============SUB FUNCTION SET=====#
+
+export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol
 
 end

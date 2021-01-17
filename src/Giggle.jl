@@ -276,7 +276,10 @@ function buildMaster(n::node;silent::Bool)
     @variable(mp, 0 <= surp_I[i=keys(n.base.V),t=n.base.T] <= n.stblzr.surpLim[i,t])
 
     #CONSTRAINT 17 & 18 + STARTING INVENTORY
-    @constraint(mp, λ[i=keys(n.base.V),t=n.base.T], I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R),k in keys(n.base.K)) + slack_I[i,t] - surp_I[i,t] == n.base.d[i,t] + I[i,t])
+    @constraint(
+        mp, λ[i=keys(n.base.V),t=n.base.T],
+        I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R),k in keys(n.base.K)) + slack_I[i,t] - surp_I[i,t] == n.base.d[i,t] + I[i,t]
+    )
     @constraint(mp, [i=keys(n.base.V),t=n.base.T], n.base.V[i].MIN <= I[i,t] <= n.base.V[i].MAX)
     @constraint(mp, [i=keys(n.base.V)], I[i,first(n.base.T)-1] == n.base.V[i].START)
 
@@ -287,12 +290,20 @@ function buildMaster(n::node;silent::Bool)
     begin
         @objective(mp, Min,
 
-        sum(( n.base.K[k].vard * g(R[r].p[:,k,t]) + sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) + sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover) ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T) +
+        sum(
+            (
+                n.base.K[k].vard * g(R[r].p[:,k,t]) +
+                sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
+            ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
+        ) +
         sum(n.base.V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
         sum(n.stblzr.slackCoeff * slack_I[i,t] for i in keys(n.base.V),t in n.base.T) -
         sum(n.stblzr.surpCoeff * surp_I[i,t] for i in keys(n.base.V),t in n.base.T)
         )
     end
+
+    return mp
 end
 
 export base,root,buildMaster

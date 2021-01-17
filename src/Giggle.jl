@@ -232,7 +232,7 @@ function root(dt::NamedTuple;slCoeff::Float64,suCoeff::Float64)
         id,id,
         dt,Vector{bound}(),
         Vector{col}(),
-        initialize(dt,slCoeff,suCoeff),
+        initStab(dt,slCoeff,suCoeff),
         ["UNVISITED"]
     )
 

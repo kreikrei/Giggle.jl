@@ -288,7 +288,7 @@ function buildMaster(n::node;silent::Bool)
         @objective(mp, Min,
 
         sum(( n.base.K[k].vard * g(R[r].p[:,k,t]) + sum(deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) + sum(K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover) ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T) +
-        sum(V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
+        sum(n.base.V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
         sum(n.stblzr.slackCoeff * slack_I[i,t] for i in keys(n.base.V),t in n.base.T) -
         sum(n.stblzr.surpCoeff * surp_I[i,t] for i in keys(n.base.V),t in n.base.T)
         )

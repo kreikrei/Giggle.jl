@@ -420,28 +420,28 @@ end
 #===============SUB FUNCTION SET=====#
 
 #===============SUPPORT ESTIMATOR FOR TSP===#
-function g(p::JuMP.Containers.DenseAxisArray)
-    x = twoOpt([i for i in first(p.axes) if p[i] == 1.0])
+function g(p::JuMP.Containers.DenseAxisArray;n::node)
+    x = twoOpt([i for i in first(p.axes) if p[i] == 1.0];n=n)
     return x
 end #CLEARED
 
-function twoOpt(p::Vector{Int64}) #INPUT IS A COLLECTION OF POINTS [15 22 23 24] ORDER IS ARBITRARY
+function twoOpt(p::Vector{Int64};n::node) #INPUT IS A COLLECTION OF POINTS [15 22 23 24] ORDER IS ARBITRARY
     if length(p) > 0
         #DETERMINE START AND NODE
         start = rand(p)
         nodes = p
 
         #DO NEAREST NEIGHBORHOOD construction
-        nnPath = nn(start,nodes)
+        nnPath = nn(start,nodes;n=n)
 
         #RETURN ITS IMPROVEMENT
-        return trav(improve(nnPath))
+        return trav(improve(nnPath;n=n);n=n)
     else
         return 0
     end
 end #CLEARED
 
-function nn(start::Int64,nodes::Vector{Int64})
+function nn(start::Int64,nodes::Vector{Int64};n::node)
     tour = [start]
 
     unvisited = deepcopy(nodes)
@@ -460,7 +460,7 @@ function nn(start::Int64,nodes::Vector{Int64})
             push!(tour,first(tour))
             terminate = true
         else
-            terpilih = selectNn(current_position,unvisited)
+            terpilih = selectNn(current_position,unvisited;n=n)
             push!(tour,terpilih)
         end
 
@@ -471,11 +471,11 @@ function nn(start::Int64,nodes::Vector{Int64})
     return tour
 end #CLEARED
 
-function selectNn(current::Int64,unvisited::Vector{Int64})
+function selectNn(current::Int64,unvisited::Vector{Int64};n::node)
     chosen = unvisited[1]
 
     for j in unvisited
-        if dist[current,chosen] > dist[current,j]
+        if n.base.dist[current,chosen] > n.base.dist[current,j]
             chosen = j #tuker kalo jaraknya lebih kecil
         end
     end
@@ -483,14 +483,14 @@ function selectNn(current::Int64,unvisited::Vector{Int64})
     return chosen
 end #CLEARED
 
-function improve(p::Vector{Int64}) #INPUT: NNPATH i.e. [15 27 28 29 15]
+function improve(p::Vector{Int64};n::node) #INPUT: NNPATH i.e. [15 27 28 29 15]
     a = view(p,2:length(p)-1,1)
 
     for i in 1:length(a) - 1
         for k in i+1:length(a) - 1
-            best = trav(p)
+            best = trav(p;n=n)
             reverse!(view(a,i:k,1))
-            if trav(p) >= best
+            if trav(p;n=n) >= best
                 reverse!(view(a,i:k,1))
             end
         end
@@ -499,8 +499,8 @@ function improve(p::Vector{Int64}) #INPUT: NNPATH i.e. [15 27 28 29 15]
     return p
 end #CLEARED
 
-function trav(p::Vector{Int64}) #INPUT: NNPATH i.e. [15 27 28 29 15]
-    return sum(dist[p[i],p[i+1]] for i in 1:length(p)-1)
+function trav(p::Vector{Int64};n::node) #INPUT: NNPATH i.e. [15 27 28 29 15]
+    return sum(n.base.dist[p[i],p[i+1]] for i in 1:length(p)-1)
 end
 #===============SUPPORT ESTIMATOR FOR TSP===#
 

@@ -368,8 +368,8 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     #CONSTRAINTS
     @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(q[i,k,t] for i in n.base.K[k].cover) == 0)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], q[i,k,t] == u[i,k,t] - v[i,k,t])
-    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], u[i,k,t] <= K[k].Q * y[i,k,t])
-    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], v[i,k,t] <= K[k].Q * z[i,k,t])
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], u[i,k,t] <= n.base.K[k].Q * y[i,k,t])
+    @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], v[i,k,t] <= n.base.K[k].Q * z[i,k,t])
     @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(z[i,k,t] for i in n.base.K[k].cover) <= 1)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
 

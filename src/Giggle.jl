@@ -222,7 +222,7 @@ function initialize(base::NamedTuple,valueSlackCoeff::Float64,valueSurplusCoeff:
     end
 
     return stabilizer(slackCoeff,slackLim,surpCoeff,surpLim)
-end #CLEARED
+end
 
 #function to create root node
 function root(dt::NamedTuple;slCoeff,suCoeff)

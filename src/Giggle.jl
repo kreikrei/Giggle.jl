@@ -276,7 +276,7 @@ function buildMaster(n::node;silent::Bool)
     @variable(mp, 0 <= surp_I[i=keys(n.base.V),t=n.base.T] <= n.stblzr.surpLim[i,t])
 
     #CONSTRAINT 17 & 18 + STARTING INVENTORY
-    @constraint(mp, λ[i=keys(n.base.V),t=n.base.T], I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R),k in keys(n.base.K)) + slack_I[i,t] - surp_I[i,t] == d[i,t] + I[i,t])
+    @constraint(mp, λ[i=keys(n.base.V),t=n.base.T], I[i,t-1] + sum(R[r].q[i,k,t] * θ[r,k,t] for r in keys(R),k in keys(n.base.K)) + slack_I[i,t] - surp_I[i,t] == n.base.d[i,t] + I[i,t])
     @constraint(mp, [i=keys(n.base.V),t=n.base.T], V[i].MIN <= I[i,t] <= V[i].MAX)
     @constraint(mp, [i=keys(n.base.V)], I[i,first(n.base.T)-1] == V[i].START)
 

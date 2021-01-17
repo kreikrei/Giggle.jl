@@ -95,7 +95,6 @@ end
 
 #CONSTANTS USED THROUGHOUT
 const M = 9999999
-const GUROBI_ENV = Gurobi.Env()
 const rng = MersenneTwister(1234)
 
 #function to generate base data
@@ -263,7 +262,7 @@ function buildMaster(n::node;silent::Bool)
     R = Dict(1:length(n.columns) .=> n.columns)
 
     #MODEL DECLARATION
-    mp = Model(optimizer_with_attributes(() -> Gurobi.Optimizer(GUROBI_ENV)))
+    mp = Model(optimizer_with_attributes(() -> Gurobi.Optimizer(Gurobi.Env())))
     if silent
         set_silent(mp)
     end

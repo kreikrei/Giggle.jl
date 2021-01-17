@@ -398,20 +398,24 @@ function getCol(sp::Model)
     y = value.(sp.obj_dict[:y])
     z = value.(sp.obj_dict[:z])
 
+    return col(q,u,v,p,y,z)
+end
+
+function realPrice(n::node,column::col)
     #CALCULATE REAL PRICING
     begin
         price = (
             sum(
-                n.base.K[k].vard * g(p[:,k,t]) +
-                sum(n.base.deli[i,k] * v[i,k,t] for i in n.base.K[k].cover) +
-                sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
+                n.base.K[k].vard * g(column.p[:,k,t]) +
+                sum(n.base.deli[i,k] * column.v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.K[k].fix * column.z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -
-            sum(sum(q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
+            sum(sum(column.q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
             sum(duals.δ[k,t] for k in keys(n.base.K),t in n.base.T)
         )
     end
 
-    return (price = price, column = col(q,u,v,p,y,z))
+    return price
 end
 #===============SUB FUNCTION SET=====#
 

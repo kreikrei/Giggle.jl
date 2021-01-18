@@ -298,7 +298,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
     @constraint(mp, δ[k=keys(n.base.K),t=n.base.T], sum(θ[r,k,t] for r in keys(R)) <= n.base.K[k].freq)
 
     #BOUND GENERATOR
-    @constraint(mp, [b=n.bounds], sum(R[r].p[b.idx.i,b.idx.k,b.idx.t] * θ[r,b.idx.k,b.idx.t] for r in keys(R))  == b.val)
+    @constraint(mp, β[b=n.bounds], sum(R[r].p[b.idx.i,b.idx.k,b.idx.t] * θ[r,b.idx.k,b.idx.t] for r in keys(R))  == b.val)
 
     #OBJECTIVE FUNCTION
     begin

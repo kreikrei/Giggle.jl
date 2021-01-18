@@ -541,7 +541,7 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
 
             #NEGATIVE COLUMN CHECK
             if price >= 0
-                if slaksurp == 0
+                if slacksurp == 0
                     terminate = true
                     push!(n.status,"EVALUATED")
                     if track

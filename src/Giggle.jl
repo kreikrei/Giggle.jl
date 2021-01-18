@@ -532,16 +532,16 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
             #EXTRACT COLS & PRICE
             cols = getCol(sp)
             price = realPrice(n,duals;column=cols)
-            check = check(mp)
+            slacksurp = check(mp)
 
             if track #tracking status
                 println(price)
-                println("nilai slack surp $check")
+                println("nilai slack surp $slacksurp")
             end
 
             #NEGATIVE COLUMN CHECK
             if price >= 0
-                if check == 0
+                if slaksurp == 0
                     terminate = true
                     push!(n.status,"EVALUATED")
                     if track

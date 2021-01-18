@@ -591,6 +591,17 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
 
 end
 
-export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol,realPrice
+export base
+export root
+export master
+export sub
+export setBoundMaster!
+export buildMaster
+export getDual
+export setBoundSub!
+export buildSub
+export getCol
+export realPrice
+export colGen
 
 end

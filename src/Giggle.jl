@@ -584,9 +584,9 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
     end
 
     if n.status[end] == "EVALUATED" || n.status[end] == "EVALUATED-TIME OUT"
-        println("NODE $(n.id) FINISHED.")
+        println("NODE $(n.self) FINISHED.")
     else
-        println("NODE $(n.id) FAILED.")
+        println("NODE $(n.self) FAILED.")
     end
 
 end

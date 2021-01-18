@@ -534,8 +534,8 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
             end
 
             #NEGATIVE COLUMN CHECK
-            if price >= 0
-                if slacksurp == 0
+            if isapprox(price, 0, atol = 1e-8) || price > 0
+                if isapprox(slacksurp, 0, atol = 1e-8)
                     terminate = true
                     push!(n.status,"EVALUATED")
                     if track

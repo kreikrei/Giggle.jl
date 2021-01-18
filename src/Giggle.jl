@@ -531,7 +531,7 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
 
             #EXTRACT COLS & PRICE
             cols = getCol(sp)
-            price = realPrice(m,duals;column=cols)
+            price = realPrice(n,duals;column=cols)
             check = check(mp)
 
             if track #tracking status
@@ -581,6 +581,12 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
                 println("NO_SOLUTION")
             end
         end
+    end
+
+    if n.status[end] == "EVALUATED" || n.status[end] == "EVALUATED-TIME OUT"
+        println("NODE $(n.id) FINISHED.")
+    else
+        println("NODE $(n.id) FAILED.")
     end
 
 end

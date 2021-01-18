@@ -508,7 +508,7 @@ function check(model::Model)
     return value(sum(model.obj_dict[:slack_I])) + value(sum(model.obj_dict[:surp_I]))
 end #CLEARED
 
-function colGen(n::node,maxCG::Flot64;silent::Bool,env::Gurobi.Env,track::Bool)
+function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
     #INITIALIZE
     terminate = false
     iter = 0
@@ -583,12 +583,7 @@ function colGen(n::node,maxCG::Flot64;silent::Bool,env::Gurobi.Env,track::Bool)
         end
     end
 
-    if n.status[end] == "EVALUATED"
-        println("NODE $(n.id) FINISHED.")
-    elseif n.status[end] == "EVALUATED-TIME OUT"
-
-
-
+end
 
 export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol,realPrice
 

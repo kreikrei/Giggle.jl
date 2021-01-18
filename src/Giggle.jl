@@ -504,6 +504,92 @@ function trav(p::Vector{Int64};n::node) #INPUT: NNPATH i.e. [15 27 28 29 15]
 end
 #===============SUPPORT ESTIMATOR FOR TSP===#
 
+function check(model::Model)
+    return value(sum(model.obj_dict[:slack_I])) + value(sum(model.obj_dict[:surp_I]))
+end #CLEARED
+
+function colGen(n::node,maxCG::Flot64;silent::Bool,env::Gurobi.Env,track::Bool)
+    #INITIALIZE
+    terminate = false
+    iter = 0
+
+    while !terminate
+        #GENERATE MASTER PROBLEM
+        mp = master(n;silent=silent,env=env)
+
+        #NODE PROCESSING STATUS CHECK
+        if has_values(mp) && has_duals(mp)
+            if track #tracking status
+                println("obj: $(objective_value(mp))")
+            end
+
+            #EXTRACT DUAL
+            duals = getDual(mp)
+
+            #GENERATE SUBPROBLEM
+            sp = sub(n,duals;silent=silent,env=env)
+
+            #EXTRACT COLS & PRICE
+            cols = getCol(sp)
+            price = realPrice(m,duals;column=cols)
+            check = check(mp)
+
+            if track #tracking status
+                println(price)
+                println("nilai slack surp $check")
+            end
+
+            #NEGATIVE COLUMN CHECK
+            if price >= 0
+                if check == 0
+                    terminate = true
+                    push!(n.status,"EVALUATED")
+                    if track
+                        println("EVALUATED")
+                    end
+                else
+                    update(n.stblzr,0.4)
+                    push!(n.status,"STABILIZED")
+                    if track
+                        println("STABILIZED")
+                    end
+                end
+            else
+                push!(n.columns,cols)
+                push!(n.status,"ADD_COLUMN")
+                if track
+                    println("ADD_COLUMN")
+                end
+            end
+
+            #UPDATE ITER
+            iter += 1
+
+            #MAXIMUM ITER
+            if iter >= maxCG
+                terminate = true
+                pop!(n.columns)
+                push!(n.status,"EVALUATED-TIME OUT")
+                if track
+                    println("EVALUATED-TIME OUT")
+                end
+            end
+        else
+            terminate = true
+            push!(n.status,"NO_SOLUTION")
+            if track
+                println("NO_SOLUTION")
+            end
+        end
+    end
+
+    if n.status[end] == "EVALUATED"
+        println("NODE $(n.id) FINISHED.")
+    elseif n.status[end] == "EVALUATED-TIME OUT"
+
+
+
+
 export base,root,master,sub,master,setBoundMaster!,buildMaster,getDual,sub,setBoundSub!,buildSub,getCol,realPrice
 
 end

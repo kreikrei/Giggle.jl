@@ -261,18 +261,9 @@ end
 function master(n::node;silent::Bool,env::Gurobi.Env)
     #build and bound
     mp = buildMaster(n;silent=silent,env=env)
-    setBoundMaster!(mp,n.bounds)
 
     #solve the mp
     optimize!(mp)
-
-    return mp
-end
-
-function setBoundMaster!(mp::Model,bounds::Vector{bound})
-    for b in bounds
-        #masukin aturan pembuatan bound di sini
-    end
 
     return mp
 end
@@ -306,6 +297,9 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
     #CONVEXITY CONSTRAINT LABEL 19
     @constraint(mp, δ[k=keys(n.base.K),t=n.base.T], sum(θ[r,k,t] for r in keys(R)) <= n.base.K[k].freq)
 
+    #BOUND GENERATOR
+    #insert bound function here
+
     #OBJECTIVE FUNCTION
     begin
         @objective(mp, Min,
@@ -334,18 +328,9 @@ end
 function sub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     #build and bound
     sp = buildSub(n,duals;silent=silent,env=env)
-    setBoundSub!(sp,n.bounds)
 
     #solve the sp
     optimize!(sp)
-
-    return sp
-end
-
-function setBoundSub!(sp::Model,bounds::Vector{bound})
-    for b in bounds
-        #masukin aturan pembuatan bound di sini
-    end
 
     return sp
 end
@@ -372,6 +357,9 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], v[i,k,t] <= n.base.K[k].Q * z[i,k,t])
     @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(z[i,k,t] for i in n.base.K[k].cover) <= 1)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
+
+    #BOUND GENERATOR
+    #insert bound function here
 
     #OBJECTIVE FUNCTION
     begin
@@ -592,15 +580,17 @@ end
 
 export base
 export root
+
 export master
-export sub
-export setBoundMaster!
 export buildMaster
 export getDual
-export setBoundSub!
+
+export sub
 export buildSub
 export getCol
+
 export realPrice
+
 export colGen
 
 end

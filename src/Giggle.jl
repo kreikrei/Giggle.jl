@@ -298,7 +298,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
     @constraint(mp, δ[k=keys(n.base.K),t=n.base.T], sum(θ[r,k,t] for r in keys(R)) <= n.base.K[k].freq)
 
     #BOUND GENERATOR
-    @constraint(mp, β[b=n.bounds], sum(R[r].p[b.idx.i,b.idx.k,b.idx.t] * θ[r,b.idx.k,b.idx.t] for r in keys(R))  == b.val)
+    @constraint(mp, β[b=n.bounds], sum(θ[r,b.idx.k,b.idx.t] for r in keys(filter(p -> last(p).p[b.idx.i,b.idx.k,b.idx.t] > 0,R)))  == b.val)
 
     #OBJECTIVE FUNCTION
     begin
@@ -359,7 +359,13 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
 
     #BOUND GENERATOR SUBPROBLEM
-    #insert bound function here
+    for b in n.bounds
+        if b.val > 0
+            @constraint(sp, p[b.idx.i,b.idx.k,b.idx.t] == 1)
+        else
+            @constraint(sp, p[b.idx.i,b.idx.k,b.idx.t] == 0)
+        end
+    end
 
     #OBJECTIVE FUNCTION
     begin

@@ -588,7 +588,6 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
     else
         println("NODE $(n.self) FAILED.")
     end
-
 end
 
 export base

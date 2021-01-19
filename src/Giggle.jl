@@ -316,7 +316,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
                 (
                     n.base.K[k].vard * g(R[r].y[:,k,t];n=n,k=k) +
                     sum(n.base.deli[i,k] * R[r].u[i,k,t] for i in n.base.K[k].cover) +
-                    sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
+                    n.base.K[k].fix * R[r].z[n.base.K[k].start,k,t]
                 ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
             ) +
             sum(n.base.V[i].h * I[i,t] for i in keys(n.base.V),t in n.base.T) +
@@ -383,7 +383,7 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
             sum(
                 sum(n.base.K[k].vard * n.base.G[i,k] * y[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.deli[i,k] * u[i,k,t] for i in n.base.K[k].cover) +
-                sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
+                n.base.K[k].fix * z[n.base.K[k].start,k,t] for k in keys(n.base.K),t in n.base.T
             ) -
             sum(sum(q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
             sum(duals.δ[k,t] for k in keys(n.base.K),t in n.base.T)
@@ -412,7 +412,7 @@ function realPrice(n::node,duals::dval;column::col)
             sum(
                 n.base.K[k].vard * g(column.y[:,k,t];n=n,k=k) +
                 sum(n.base.deli[i,k] * column.u[i,k,t] for i in n.base.K[k].cover) +
-                sum(n.base.K[k].fix * column.z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
+                n.base.K[k].fix * column.z[n.base.K[k].start,k,t] for k in keys(n.base.K),t in n.base.T
             ) -
             sum(sum(column.q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
             sum(duals.δ[k,t] for k in keys(n.base.K),t in n.base.T)

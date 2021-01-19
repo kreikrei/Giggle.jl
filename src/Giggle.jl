@@ -184,8 +184,13 @@ function base(path::String)
     G = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(K)))
     G .= M
     for k in keys(K)
+        seed = K[k].cover[findmin([dist[K[k].start,j] for j in K[k].cover])[2]]
         for x in K[k].cover
-            G[x,k] = dist[K[k].start,x] + dist[x,K[k].start]
+            if x != seed
+                G[x,k] = (min(dist[K[k].start,x]+dist[x,seed]+dist[seed,K[k].start] , dist[K[k].start,seed]+dist[seed,x]+dist[x,K[k].start]) - (dist[K[k].start,seed] + dist[seed,K[k].start]))
+            else
+                G[x,k] = 0
+            end
         end
     end
 

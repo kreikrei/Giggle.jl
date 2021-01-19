@@ -359,7 +359,14 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], q[i,k,t] == u[i,k,t] - v[i,k,t])
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], u[i,k,t] <= n.base.K[k].Q * y[i,k,t])
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], v[i,k,t] <= n.base.K[k].Q * z[i,k,t])
-    @constraint(sp, [k=keys(n.base.K),t=n.base.T], sum(z[i,k,t] for i in n.base.K[k].cover) <= 1)
+    @constraint( #everything outside the possible starting point is zero
+        sp, [k=keys(n.base.K),t=n.base.T],
+        sum(z[i,k,t] for i in filter(x -> x != n.base.K[k].start,n.base.K[k].cover)) == 0
+    )
+    @constraint( #the starting point can be zero or one
+        sp, [k=keys(n.base.K),t=n.base.T],
+        z[n.base.K[k].start,k,t] <= 1
+    )
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
 
     #BOUND GENERATOR SUBPROBLEM

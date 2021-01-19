@@ -194,9 +194,7 @@ function base(path::String)
     deli .= M
     for k in keys(K)
         for i in K[k].cover
-            if !(i == K[k].start)
-                deli[i,k] = K[k].varq + K[k].vardq * dist[K[k].start,i]
-            end
+            deli[i,k] = K[k].varq + K[k].vardq * dist[K[k].start,i]
         end
     end
 

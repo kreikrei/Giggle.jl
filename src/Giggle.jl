@@ -180,7 +180,7 @@ function base(path::String)
     G = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(K)))
     G .= M
     for k in keys(K)
-        seed = K[k].cover[findmin([dist[K[k].start,j] for j in K[k].cover])[2]] #findmin means the closest to dep point
+        seed = K[k].cover[findmin([dist[K[k].start,j] for j in K[k].cover if j != K[k].start])[2]] #findmin means the closest to dep point
         for x in K[k].cover
             if x != seed
                 G[x,k] = min(dist[K[k].start,x]+dist[x,seed]+dist[seed,K[k].start] , dist[K[k].start,seed]+dist[seed,x]+dist[x,K[k].start]) - (dist[K[k].start,seed] + dist[seed,K[k].start])
@@ -343,9 +343,9 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     end
 
     #VARIABLE DECLARATION
-    q = @variable(sp, q[keys(n.base.V),keys(n.base.K),n.base.T])
-    u = @variable(sp, u[keys(n.base.V),keys(n.base.K),n.base.T] >= 0)
-    v = @variable(sp, v[keys(n.base.V),keys(n.base.K),n.base.T] >= 0)
+    q = @variable(sp, q[keys(n.base.V),keys(n.base.K),n.base.T],Int)
+    u = @variable(sp, u[keys(n.base.V),keys(n.base.K),n.base.T] >= 0,Int)
+    v = @variable(sp, v[keys(n.base.V),keys(n.base.K),n.base.T] >= 0,Int)
     y = @variable(sp, y[keys(n.base.V),keys(n.base.K),n.base.T], Bin)
     z = @variable(sp, z[keys(n.base.V),keys(n.base.K),n.base.T], Bin)
     p = @variable(sp, p[keys(n.base.V),keys(n.base.K),n.base.T], Bin)

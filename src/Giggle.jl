@@ -298,7 +298,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
     @constraint(mp, δ[k=keys(n.base.K),t=n.base.T], sum(θ[r,k,t] for r in keys(R)) <= n.base.K[k].freq)
 
     #BOUND GENERATOR
-    @constraint(mp, β[b=n.bounds], sum(θ[r,b.idx.k,b.idx.t] for r in keys(filter(p -> last(p).p[b.idx.i,b.idx.k,b.idx.t] > 0,R)))  == b.val)
+    #empty
 
     #OBJECTIVE FUNCTION
     begin
@@ -306,7 +306,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
             sum(
                 (
                     n.base.K[k].vard * g(R[r].p[:,k,t];n=n) +
-                    sum(n.base.deli[i,k] * R[r].v[i,k,t] for i in n.base.K[k].cover) +
+                    sum(n.base.deli[i,k] * R[r].u[i,k,t] for i in n.base.K[k].cover) +
                     sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
                 ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
             ) +
@@ -359,20 +359,14 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     @constraint(sp, [k=keys(n.base.K),i=n.base.K[k].cover,t=n.base.T], p[i,k,t] == y[i,k,t] + z[i,k,t])
 
     #BOUND GENERATOR SUBPROBLEM
-    for b in n.bounds
-        if b.val > 0
-            @constraint(sp, p[b.idx.i,b.idx.k,b.idx.t] == 1)
-        else
-            @constraint(sp, p[b.idx.i,b.idx.k,b.idx.t] == 0)
-        end
-    end
+    #empty
 
     #OBJECTIVE FUNCTION
     begin
         @objective(sp,Min,
             sum(
                 sum(n.base.K[k].vard * n.base.G[i,k] * p[i,k,t] for i in n.base.K[k].cover) +
-                sum(n.base.deli[i,k] * v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.deli[i,k] * u[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -
             sum(sum(q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -
@@ -401,7 +395,7 @@ function realPrice(n::node,duals::dval;column::col)
         price = (
             sum(
                 n.base.K[k].vard * g(column.p[:,k,t];n=n) +
-                sum(n.base.deli[i,k] * column.v[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.deli[i,k] * column.u[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.K[k].fix * column.z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -
             sum(sum(column.q[i,k,t] * duals.λ[i,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T) -

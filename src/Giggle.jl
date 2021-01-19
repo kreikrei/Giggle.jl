@@ -194,7 +194,10 @@ function base(path::String)
     deli = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(K)))
     deli .= M
     for k in keys(K),i in K[k].cover
-        deli[i,k] = K[k].varq + K[k].vardq * dist[K[k].start,i]
+        if !(i == K[k].start)
+            deli[i,k] = K[k].varq + K[k].vardq * dist[K[k].start,i]
+        else
+            deli[i,k] = M
     end
 
     #DATA GENERATION STATUS

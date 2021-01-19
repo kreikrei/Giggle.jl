@@ -173,7 +173,11 @@ function base(path::String)
     earth = 6378.137
     dist = JuMP.Containers.DenseAxisArray{Float64}(undef,collect(keys(V)),collect(keys(V)))
     for i in keys(V), j in keys(V)
-        dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],earth)
+        if i != j
+            dist[i,j] = haversine([V[i].x,V[i].y],[V[j].x,V[j].y],earth)
+        else
+            dist[i,j] = M
+        end
     end
 
     #GENERATE G MATRIX

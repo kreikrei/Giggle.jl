@@ -309,7 +309,7 @@ function buildMaster(n::node;silent::Bool,env::Gurobi.Env)
         @objective(mp, Min,
             sum(
                 (
-                    n.base.K[k].vard * g(R[r].p[:,k,t];n=n) +
+                    n.base.K[k].vard * g(R[r].y[:,k,t];n=n,k=k) +
                     sum(n.base.deli[i,k] * R[r].u[i,k,t] for i in n.base.K[k].cover) +
                     sum(n.base.K[k].fix * R[r].z[i,k,t] for i in n.base.K[k].cover)
                 ) * θ[r,k,t] for r in keys(R),k in keys(n.base.K),t in n.base.T
@@ -369,7 +369,7 @@ function buildSub(n::node,duals::dval;silent::Bool,env::Gurobi.Env)
     begin
         @objective(sp,Min,
             sum(
-                sum(n.base.K[k].vard * n.base.G[i,k] * p[i,k,t] for i in n.base.K[k].cover) +
+                sum(n.base.K[k].vard * n.base.G[i,k] * y[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.deli[i,k] * u[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.K[k].fix * z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -
@@ -398,7 +398,7 @@ function realPrice(n::node,duals::dval;column::col)
     begin
         price = (
             sum(
-                n.base.K[k].vard * g(column.p[:,k,t];n=n) +
+                n.base.K[k].vard * g(column.y[:,k,t];n=n,k=k) +
                 sum(n.base.deli[i,k] * column.u[i,k,t] for i in n.base.K[k].cover) +
                 sum(n.base.K[k].fix * column.z[i,k,t] for i in n.base.K[k].cover) for k in keys(n.base.K),t in n.base.T
             ) -
@@ -412,16 +412,16 @@ end
 #===============SUB FUNCTION SET=====#
 
 #===============SUPPORT ESTIMATOR FOR TSP===#
-function g(p::JuMP.Containers.DenseAxisArray;n::node)
-    x = twoOpt([i for i in first(p.axes) if p[i] == 1.0];n=n)
+function g(y::JuMP.Containers.DenseAxisArray;n::node,k::Int64)
+    x = twoOpt([i for i in first(y.axes) if y[i] == 1.0];n=n,k=k)
     return x
 end #CLEARED
 
-function twoOpt(p::Vector{Int64};n::node) #INPUT IS A COLLECTION OF POINTS [15 22 23 24] ORDER IS ARBITRARY
+function twoOpt(p::Vector{Int64};n::node,k::Int64) #INPUT IS A COLLECTION OF POINTS [15 22 23 24] ORDER IS ARBITRARY
     if length(p) > 0
         #DETERMINE START AND NODE
-        start = rand(p)
-        nodes = p
+        start = n.base.K[k].start #passing k stop di sini
+        nodes = vcat(start,p)
 
         #DO NEAREST NEIGHBORHOOD construction
         nnPath = nn(start,nodes;n=n)

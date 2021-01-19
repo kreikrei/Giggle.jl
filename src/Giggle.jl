@@ -198,7 +198,10 @@ function base(path::String)
             deli[i,k] = K[k].varq + K[k].vardq * dist[K[k].start,i]
         else
             deli[i,k] = M
+<<<<<<< HEAD
         end
+=======
+>>>>>>> 2c5921346ab47abe9a2000dfb86e3afd62ed3823
     end
 
     #DATA GENERATION STATUS

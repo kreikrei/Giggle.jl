@@ -198,10 +198,13 @@ function base(path::String)
     end
 
     #DATA GENERATION STATUS
+    trucks = sort(collect(keys(filter(p -> last(p).type == "truck",K))))
+    ships = sort(collect(keys(filter(p -> last(p).type == "ship",K))))
+    trains = sort(collect(keys(filter(p -> last(p).type == "train",K))))
     println("there are $(length(K)) vehicle data points with the composition:")
-    println("$(length(collect(keys(filter(p -> last(p).type == "truck",K))))) truck(s)")
-    println("$(length(collect(keys(filter(p -> last(p).type == "ship",K))))) ship(s)")
-    println("$(length(collect(keys(filter(p -> last(p).type == "train",K))))) train(s)")
+    println("$(length(trucks)) truck(s) for index $(first(trucks)) to $(last(trucks))")
+    println("$(length(ships)) ship(s) for index $(first(ships)) to $(last(ships))")
+    println("$(length(trains)) train(s) for index $(first(trains)) to $(last(trains))")
     println()
     println("there are $(length(V)) vertex data points with the composition:")
     println("$(length(collect(keys(filter(p -> last(p).type == "source",V))))) source(s)")

@@ -547,7 +547,7 @@ function colGen(n::node,maxCG::Float64;silent::Bool,env::Gurobi.Env,track::Bool)
                         println("EVALUATED")
                     end
                 else
-                    update(n.stblzr,0.4)
+                    updateStab(n.stblzr,0.4)
                     push!(n.status,"STABILIZED")
                     if track
                         println("STABILIZED")
